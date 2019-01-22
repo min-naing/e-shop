@@ -23,7 +23,7 @@ export class ShoppingCartService {
 
   async getCart() {
     let cartId = await this.getOrCreateCartId();
-    return this.cartCollection.doc(cartId).collection('items').snapshotChanges()
+    return this.getItemsCollection(cartId).snapshotChanges()
               .pipe(
                 map(x => new ShoppingCart(x as any) )
               );
@@ -38,10 +38,6 @@ export class ShoppingCartService {
     } 
     else 
       return cartId; 
-  }
-
-  private getItemDoc(cartId: string, productId: string) {
-    return this.cartCollection.doc(cartId).collection('items').doc(productId);
   }
 
   async addToCart(product: Product) {
@@ -69,10 +65,32 @@ export class ShoppingCartService {
       }
       else
         this.getItemDoc(cartId, product.id).set({
-          product: product,
+          title: product.title,
+          category: product.category,
+          price: product.price,
+          imageUrl: product.imageUrl,
           quantity: 1
         });
     });
+  }
+
+  async clearCart() {
+    const cartId = await this.getOrCreateCartId();
+    this.getItemsCollection(cartId).snapshotChanges()
+      .pipe(take(1))
+      .subscribe(items => {
+        items.forEach(item => {
+          this.getItemDoc(cartId, item.payload.doc.id).delete();
+        });
+      });
+  }
+
+  private getItemsCollection(cartId) {
+    return this.cartCollection.doc(cartId).collection('items');
+  }
+
+  private getItemDoc(cartId: string, productId: string) {
+    return this.cartCollection.doc(cartId).collection('items').doc(productId);
   }
 
 }

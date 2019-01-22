@@ -5,10 +5,14 @@ export class ShoppingCart {
     items: ShoppingCartItem[] = [];
 
     constructor(private itemsMap: { [productId: string]: ShoppingCartItem } ) {
+        this.itemsMap = itemsMap || {};
 
         for(let index in itemsMap) {
             const item = itemsMap[index] as any;
-            this.items.push(new ShoppingCartItem(item.payload.doc.data().product, item.payload.doc.data().quantity, item.payload.doc.id));
+            this.items.push(new ShoppingCartItem({ 
+                id: item.payload.doc.id,
+                ...item.payload.doc.data()
+            }));
         }
     }
 
