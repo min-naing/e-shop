@@ -3,6 +3,7 @@ import { ProductService } from '../product.service';
 import { Product } from '../models/product';
 import { ActivatedRoute } from '@angular/router';
 import { switchMap } from 'rxjs/operators';
+import { ShoppingCartService } from '../shopping-cart.service';
 
 @Component({
   selector: 'app-products',
@@ -14,12 +15,17 @@ export class ProductsComponent implements OnInit {
   products: Product[] = [];
   filteredProducts: Product[] = [];
   category: string;
+  cart: any;
 
   constructor(
     private route: ActivatedRoute,
-    private prodcutService: ProductService) { }
+    private prodcutService: ProductService,
+    private cartService: ShoppingCartService) { }
 
-  ngOnInit() {
+  async ngOnInit() {
+
+    this.cart = (await this.cartService.getCart()).subscribe(cart => this.cart = cart);
+
     this.prodcutService.getAll()
       .pipe(
         switchMap(products => {
